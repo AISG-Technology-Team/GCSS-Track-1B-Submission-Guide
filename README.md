@@ -1,4 +1,4 @@
-# AI Singapore Global Challenge for Safe and Secure LLMs (Track 1B) Submission Guide
+# AI Singapore Global Challenge for Safe and Secure LLMs (Track 1B) Submission Guide (Pre-release Draft)
 
 Participants must submit a **compressed Docker container in the tar.gz format** via the [challenge platform](https://gcss.aisingapore.org/). This repository serves as a step-by-step guide to help participants create a valid submission for Track 1B of the Challenge.
 
@@ -22,7 +22,7 @@ All participants' compressed Docker containers will be executed on virtual machi
 
 | vCPU | Mem (GB) | GPU            | tmpfs (GiB) |
 |------|----------|----------------|-------------|
-| TBC  | 100      | A100 40GB VRAM | 5           |
+| TBC  | TBC      | A100 40GB VRAM | 5           |
 
 This will be reflected in the `docker run` command options. Participants may specify different settings for their own testing purposes, but these will not be reflected in the official run-time environment for scoring.
 
