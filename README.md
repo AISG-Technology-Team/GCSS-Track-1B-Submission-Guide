@@ -13,7 +13,9 @@ To build and run GPU accelerated Docker containers, please install the [NVIDIA C
 ## Technical Details
 ### Challenge Specifications
 
-All participants' submitted Docker containers will be given access to three Victim Models (`Llama-2-7b-chat-hf` and two other undisclosed Large Lanugage Models) via a RESTful API, and an undisclosed list of behaviours from which to generate one attack prompt per behaviour to be used by the three Victim Models.
+All participants' submitted Docker containers will be given access to three Victim Models (`Llama-2-7b-chat-hf` and two other undisclosed Large Language Models) via a RESTful API, and an undisclosed list of behaviours from which to generate one attack prompt per behaviour to be used by the three Victim Models.
+
+No access to any other resources (network-based or otherwise) other than what is provided in the submitted Docker containers will be available.
 
 
 ### Hardware/Software Specifications
@@ -22,18 +24,17 @@ All participants' compressed Docker containers will be executed on virtual machi
 
 | vCPU | Mem (GB) | GPU            | tmpfs (GiB) |
 |------|----------|----------------|-------------|
-| TBC  | TBC      | A100 40GB VRAM | 5           |
+| 4    | 16       | A100 40GB VRAM | 5           |
 
 This will be reflected in the `docker run` command options. Participants may specify different settings for their own testing purposes, but these will not be reflected in the official run-time environment for scoring.
 
 The general software specification
 * Instruction Set: x86-64
 * Ubuntu 22.04
-* NVIDIA Driver Version: 535
-    * CUDA 11.x-12.x
+* NVIDIA Driver Version: 535.183.06
     * Check for [CUDA - NVIDIA Driver Compatibility](https://docs.nvidia.com/deploy/cuda-compatibility/)
-* Docker Version: 24.0.7
-* NVIDIA Container Toolkit: 1.14.4-1
+* Docker Version: 26.1.3
+* NVIDIA Container Toolkit: 1.16.1-1
 
 **IMPORTANT NOTE**: The following instructions relating to Docker assumes our general software specification.
 
@@ -56,21 +57,21 @@ Each Victim Model may be queried at the RESTful API server specified by the envi
     "model": 1,          // 0, 1, 2 corresponding to the three Victim Models.
     "messages": [
         {
-            "role": "user",
-            "content": "This is a test"
-        },
-        {
             "role": "system",
             "content": "You are an assistant that speaks like Shakespeare."
         },
         {
-            "role": "assistant"
+            "role": "user",
+            "content": "This is a test."
+        },
+        {
+            "role": "assistant",
             "content": "To be or not to be, that is the question."
         },
         {
             "role": "user",
-            "content": "That is not a joke"
-        },
+            "content": "That is not a joke."
+        }
     ]
 }
 ```
@@ -88,18 +89,14 @@ The return from each call has the following JSON format:
     "response": {
         "success": true,
         "message": {
-            "role": "assistant"
-            "content": "That was not a joke"
-        },
+            "role": "assistant",
+            "content": "That was not a joke."
+        }
     }
 }
 ```
 
-On any failure, the key `success` will have the value `false`, and nothing else can be assumed for the rest of the key-values in the value of `response`.
-
-You may not assume that any specific Victim Model can handle more than one prompt concurrently. You may, however, assume that it is possible to concurrently query the three different Victim Models.
-
-So, querying model `1` with two (or more) prompts concurrently is not allowed, while querying model `0` with one prompt while simultaneously querying model `1` with another prompt will work as expected.
+On any failure to get a response from the Victim Model, the key `success` will have the value `false`, and nothing else can be assumed for the rest of the key-values in the value of `response`, not even the existence of a key `message`.
 
 As a courtesy, you may use `POST /attack_prompt/token_length` (basically a light wrapper around the [Llama-2 tokenizer](https://huggingface.co/meta-llama/Llama-2-7b-chat-hf)) to the RESTful API server identified by the environment variable `GCSS_SERVER` to determine the official token length of your attack prompt. The body of this API call is a JSON that may look like this:
 
@@ -115,17 +112,19 @@ The return from the call has the following JSON payload format:
 {
     "response": {
         "success": true,
-        "token_length": 25,
+        "token_length": 25
     }
 }
 ```
 
-On any failure, the key `success` will have the value `false`, and nothing else can be assumed for the rest of the key-values in the value of `response`.
+On any failure to get a response, the key `success` will have the value `false`, and nothing else can be assumed for the rest of the key-values in the value of `response`, not even the existence of a key `token_length`.
 
 
 ##### Input to Docker Container:
 
-Your solution must use `stdin` to obtain the JSON containing all the behaviours from which suitable attack prompts need to be generated that works for all three Victim Models. The format of this JSON is the same as that of [Track 1A](https://github.com/AISG-Technology-Team/GCSS-Track-1A-Submission-Guide). Unlike in Track 1A, we **do not release this list of behaviours before hand**.
+Your solution must use `stdin` to obtain the JSON containing all the behaviours from which suitable attack prompts need to be generated that works for all three Victim Models. The format of this JSON is the same as that of [Track 1A](https://github.com/AISG-Technology-Team/GCSS-Track-1A-Submission-Guide).
+
+Unlike in Track 1A, we **do not release this list of behaviours before hand**.
 
 Further details on how this is done for a Python-based Docker solution can be found in [Usage of sample submission](#usage-of-sample-submission) and [Creating your own submission](#creating-your-own-submission).
 
@@ -159,7 +158,7 @@ Further details on how this is done for a Python-based Docker solution can be fo
 
 **_Non-compliance may result in premature termination of your solution with a Resource Limit Exceeded error._**
 
-Logs may be obtained only on a case-by-case basis. Requests can be made over at the discussion board, but the fulfilment of the request shall be at the discretion of the organisers.
+Logs may be obtained only on a case-by-case basis. Requests can be made over at the [discussion board](https://github.com/AISG-Technology-Team/GCSS-Track-1B-Submission-Guide/issues), but the fulfilment of the request shall be at the discretion of the organisers.
 
 
 
@@ -169,7 +168,7 @@ Logs may be obtained only on a case-by-case basis. Requests can be made over at 
 Your solution upon saving [using docker save](#compress-your-docker-container-to-targz-format-using-docker-save) must not exceed the maximum file size of 25 GiB.
 
 ##### Max Docker Container Runtime
-Your solution must not exceed 24 hours of runtime to derive attack prompts for 3 Victim Large Language Models for up to 75 behaviours.
+Your solution must not exceed 24 hours of runtime to derive attack prompts for 3 Victim Large Language Models for up to 35 behaviours.
 
 ##### Submitted Docker Container Isolation
 All submitted Docker containers are executed in a network isolated environment where there is no internet connectivity, nor access to any other external resources or data beyond what the container and the defined REST endpoint for access to the Victim Models.
@@ -179,22 +178,42 @@ As such, your solution must have all necessary modules, model weights, and other
 **_Non-compliance will result in your Docker container facing issues/error when in operation._**
 
 ## Example: Usage of sample submission
-### Pre-condition: Create the isolated Docker network
-Before trying out the [sample submission](#usage-of-sample-submission) or [creating your own submission](#creating-your-own-submission), you will need to create a local Docker network to simulate the environment setup for the execution of solutions.
+### Pre-condition: Create the isolated Docker network & run the VLLM FastAPI Server
+Before trying out the [sample submission](#usage-of-sample-submission) or [creating your own submission](#creating-your-own-submission), you will need to:
 
-Run the following command to create your own isolated Docker network. If it is already created, as indicated by the output of `docker network ls`, you can skip this step.
-
+1. Create a local Docker network to simulate the environment setup for the execution of solutions. Run the following command to create your own isolated Docker network. If it is already created, as indicated by the output of `docker network ls`, you can skip this step.
 ```
 ISOLATED_DOCKER_NETWORK_NAME=exec_env_jail_network
 ISOLATED_DOCKER_NETWORK_DRIVER=bridge
 ISOLATED_DOCKER_NETWORK_INTERNAL=true
-ISOLATED_DOCKER_NETWORK_SUBNET=172.20.0.0/16
+ISOLATED_DOCKER_NETWORK_SUBNET=172.50.0.0/16
 
 docker network create \
     --driver "$ISOLATED_DOCKER_NETWORK_DRIVER" \
     $( [ "$ISOLATED_DOCKER_NETWORK_INTERNAL" = "true" ] && echo "--internal" ) \
     --subnet "$ISOLATED_DOCKER_NETWORK_SUBNET" \
     "$ISOLATED_DOCKER_NETWORK_NAME"
+```
+2. Run a simple VLLM Server for your [sample submission](#usage-of-sample-submission) to interact with.
+```
+ISOLATED_DOCKER_NETWORK_NAME=exec_env_jail_network
+GCSS_SERVER=vllm_server 
+DOCKER_IMAGE_FOR_VLLM=backend_server:latest 
+docker run --name "$GCSS_SERVER" \
+	--rm \
+	--cpus 4 \
+	--memory 16g \
+	--runtime=nvidia \
+	--network "$ISOLATED_DOCKER_NETWORK_NAME" \
+	--ip=172.50.0.2 \
+	--expose 8000 \
+	--gpus "device=0" \
+	-e NVIDIA_VISIBLE_DEVICES=0 \
+	-e CUDA_VISIBLE_DEVICES=0
+	-v models:/app/models \
+	-v logs:/app/logs \
+	"$DOCKER_IMAGE_FOR_VLLM" \
+	uvicorn app:app --host 172.50.0.2 --port 8000
 ```
 
 ### Clone this repository and navigate to it
@@ -221,41 +240,46 @@ _Please take note that the "`.`" indicates the current working directory and sho
 
 ### Test sample Docker container locally
 
-Please ensure you are in the parent directory of `sample_submission` before executing the following command. The `$(pwd)` command in the `--mount` option yields the current working directory. The test is successful if no error messages are seen and a `stdout.csv` is created in the `local_test/test_output` directory.
+Please ensure you are in the parent directory of `sample_submission` before executing the following command. The `$(pwd)` command in the `--mount` option yields the current working directory. The test is successful if no error messages are seen and a `stdout.json` is created in the `sample_io/test_output` directory.
 
 Alter the options for `--cpus`, `--gpus`, `--memory` to suit the system you are using to test.
 
 ```
 ISOLATED_DOCKER_NETWORK_NAME=exec_env_jail_network
+DOCKER_IMAGE_FOR_SAMPLE_SUBMISSION=sample_container
+GCSS_SERVER=vllm_server
 
-cat local_test/test_stdin/stdin.json | \
+cat sample_io/test_stdin/stdin.json | \
 docker run --init \
+        --rm \
         --attach "stdin" \
         --attach "stdout" \
         --attach "stderr" \
-        --cpus 2 \
-        --gpus "device=0" \
-        --memory 4g \
+        --cpus 4 \
+        --gpus "device=1" \
+        -e GCSS_SERVER="$GCSS_SERVER" \
+        -e NVIDIA_VISIBLE_DEVICES=1 \
+        -e CUDA_VISIBLE_DEVICES=1 \
+        --memory 16g \
         --memory-swap 0 \
-        --ulimit nproc=1024 \
-        --ulimit nofile=1024 \
-        --network exec_env_jail_network \
+        --ulimit nproc=2056 \
+        --ulimit nofile=2056 \
+        --network "$ISOLATED_DOCKER_NETWORK_NAME" \
         --read-only \
-        --mount type=bind,source="$(pwd)"/local_test/test_images,target=/images,readonly \
         --mount type=tmpfs,destination=/tmp,tmpfs-size=5368709120,tmpfs-mode=1777 \
         --interactive \
-        sample_container \
- 1>local_test/test_output/stdout.json \
- 2>local_test/test_output/stderr.txt
+        "$DOCKER_IMAGE_FOR_SUBMISSION" \
+ 1>sample_io/test_output/stdout.json \
+ 2>sample_io/test_output/stderr.log
 ```
 
 _Please note that the above `docker run` command would be equivalent to running the following command locally:_
 
 ```
-cat local_test/test_stdin/stdin.json | \
+cat sample_io/test_stdin/stdin.json | \
     python3 sample_submission/main.py \
-        1>local_test/test_output/stdout.json \
-        2>local_test/test_output/stderr.txt
+        1>sample_io/test_output/stdout.json \
+        2>sample_io/test_output/stderr.log
 ```
 
 ### Compress your sample container to `.tar.gz` format using [`docker save`](https://docs.docker.com/engine/reference/commandline/save/)
@@ -287,11 +311,11 @@ The main file has to be able to interact with standard streams such as `stdin`, 
 
 In general, the main file should have the following characteristics:
 
-1. Read the JSON object containing the behaviours;
+1. Read the JSON object containing the behaviours from `stdin`;
 1. Perform the necessary automated jailbreak attack for each of the behaviours that works across the Victim Models;
-1. Output the attack prompt for each behaviour conforming to the 
-1. Output a single line with to `stdout` for each line of `stdin` conforming to the [Submission Specification Guidelines](#submission-specification-guidelines);
+1. Output the attack prompt for each behaviour conforming to the [Submission Specification Guidelines](#submission-specification-guidelines) to `stdout`;
 1. Use `stderr` to log any necessary exceptions/errors.
+1. Ensure that for any of your API calls to `GCSS_SERVER` are handled with retries in mind.
 
 >**Note:**
 >
@@ -322,7 +346,11 @@ _Please take note that the "`.`" indicates the current working directory and sho
 
 ### Test your Docker container locally
 
-TODO
+In order to test your docker container locally, you can follow the `docker run` steps mentioned in an earlier section: [Test sample Docker container locally](#test-sample-docker-container-locally). 
+
+Ensure you replace the `$DOCKER_IMAGE_FOR_SUBMISSION` with that of yours and ensure the following
+- `stdout.json` generated is as expected.
+- `sterr.log` generated is as expected.
 
 ### Compress your Docker container to `.tar.gz` format using [`docker save`](https://docs.docker.com/engine/reference/commandline/save/)
 
@@ -334,7 +362,7 @@ docker save your_container:latest | gzip > your_container.tar.gz
 
 Submit your `your_container.tar.gz` file onto the [challenge platform](https://gcss.aisingapore.org/). Please note that when you do this, it will take up one count of your submission quota.
 
-### Submission Selectoin
+### Submission Selection
 
 Among all the submissions across the team, you must select up to **two** scored submissions for the final decision on the winners, of which the criteria is explained in the upcoming section.
 
@@ -363,7 +391,7 @@ The sort order on the public leaderboard will be in descending order on the ASR 
 
 A team's entry on the public leaderboard is based on their **best performing submission regardless of choice** using the same public leaderboard ordering scheme.
 
-Winners of Track 1B is **not** based on the order of the public leaderboard.
+Winners of Track 1B are **not** based on the order of the public leaderboard.
 
 ### Private Leaderboard
 
@@ -380,4 +408,4 @@ The sort order of the private leaderboard will be in descending order on the Har
 
 A team's entry on the private leaderboard is based on their **best peforming submission from the two selected scored submissions** using the same private leaderboard ordering scheme.
 
-Winners of Track 1B is **based** on the order of the private leaderboard.
+Winners of Track 1B are **based** on the order of the private leaderboard.
