@@ -126,7 +126,7 @@ Your solution must use `stdin` to obtain the JSON containing all the behaviours 
 
 Unlike in Track 1A, we **do not release this list of behaviours before hand**.
 
-Further details on how this is done for a Python-based Docker solution can be found in [Usage of sample submission](#usage-of-sample-submission) and [Creating your own submission](#creating-your-own-submission).
+Further details on how this is done for a Python-based Docker solution can be found in [Usage of sample submission](#example-usage-of-sample-submission) and [Creating your own submission](#example-creating-your-own-submission).
 
 ##### Output (`stdout`, `stderr`) to Container:
 
@@ -143,7 +143,7 @@ import json
 sys.stdout.write(json.dumps(output))
 ```
 
-Further details on how this is done for a Python-based Docker solution can be found in [Usage of sample submission](#usage-of-sample-submission) and [Creating your own submission](#creating-your-own-submission).
+Further details on how this is done for a Python-based Docker solution can be found in [Usage of sample submission](#example-usage-of-sample-submission) and [Creating your own submission](#example-creating-your-own-submission).
 
 Remember that for every behaviour requested from the JSON object in `stdin`, we expect an attack prompt for it. Please do not attempt to skip any, nor add anything outside of the expected indices for the behaviours.
 
@@ -154,7 +154,7 @@ Remember that for every behaviour requested from the JSON object in `stdin`, we 
 
 Your solution must use `stderr` for the writing of any logs to assist you in determining any programming errors within your solution. Logs have an implied file size limit to prevent abuse. Failure to keep within this limit through excessive logging will result in an error in your solution.
 
-Further details on how this is done for a Python-based Docker solution can be found in [Usage of sample submission](#usage-of-sample-submission) and [Creating your own submission](#creating-your-own-submission).
+Further details on how this is done for a Python-based Docker solution can be found in [Usage of sample submission](#example-usage-of-sample-submission) and [Creating your own submission](#example-creating-your-own-submission).
 
 **_Non-compliance may result in premature termination of your solution with a Resource Limit Exceeded error._**
 
@@ -179,7 +179,7 @@ As such, your solution must have all necessary modules, model weights, and other
 
 ## Example: Usage of sample submission
 ### Pre-condition: Create the isolated Docker network & run the VLLM FastAPI Server
-Before trying out the [sample submission](#usage-of-sample-submission) or [creating your own submission](#creating-your-own-submission), you will need to:
+Before trying out the [sample submission](#example-usage-of-sample-submission) or [creating your own submission](#example-creating-your-own-submission), you will need to:
 
 1. Create a local Docker network to simulate the environment setup for the execution of solutions. Run the following command to create your own isolated Docker network. If it is already created, as indicated by the output of `docker network ls`, you can skip this step.
 ```
@@ -194,7 +194,7 @@ docker network create \
     --subnet "$ISOLATED_DOCKER_NETWORK_SUBNET" \
     "$ISOLATED_DOCKER_NETWORK_NAME"
 ```
-2. Run a simple VLLM Server for your [sample submission](#usage-of-sample-submission) to interact with.
+2. Run a simple VLLM Server for your [sample submission](#example-usage-of-sample-submission) to interact with.
 ```
 ISOLATED_DOCKER_NETWORK_NAME=exec_env_jail_network
 GCSS_SERVER=vllm_server 
@@ -408,4 +408,4 @@ The sort order of the private leaderboard will be in descending order on the Har
 
 A team's entry on the private leaderboard is based on their **best peforming submission from the two selected scored submissions** using the same private leaderboard ordering scheme.
 
-Winners of Track 1B are **based** on the order of the private leaderboard.
+Winners of Track 1B are **based** on the order of the private leaderboard, with the top 5 teams there having their submissions manually evaluated to determine the top 3 winners.
