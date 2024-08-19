@@ -1,0 +1,45 @@
+version: '3.9'
+#------------
+# Services ||
+#------------
+services:
+  vllm_backend:
+    container_name: ${GCSS_SERVER}
+    image: ${DOCKER_IMAGE_FOR_VLLM}
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    init: true
+    runtime: nvidia
+    expose:
+      # this is exposes to other services and not to host machine (either/or ports)
+      - "8000"
+    # ports:
+    #   # this publishing the ports to the localhost (which is if internal network, not necessary)
+    #   - "8000:8000"
+    environment:
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - NVIDIA_VISIBLE_DEVICES=all
+      - TEST_RUN=true
+      - ATTACK_PROMPT_MAX_TOKEN_LENGTH=256
+      - VLLM_RESPONSE_MAX_TOKEN_LENGTH=256
+      - MODEL_FILES_LOCATION=./models
+
+    # app's command need to set the host to the assigned IP address of the container
+    command: uvicorn app:app --host 172.50.0.3 --port 8000
+    volumes:
+      - ${PWD}/models:/app/models
+      - ${PWD}/logs:/app/logs
+    networks:
+      backend_network:
+        ipv4_address: "172.50.0.3"
+
+networks:
+  backend_network:
+    name: ${ISOLATED_DOCKER_NETWORK_NAME}
+    driver: bridge
+    internal: true 
+    ipam:
+      config:
+        - subnet: 172.50.0.0/16
