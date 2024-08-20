@@ -1,4 +1,4 @@
-# AI Singapore Global Challenge for Safe and Secure LLMs (Track 1B) Submission Guide (Pre-release Draft)
+# AI Singapore Global Challenge for Safe and Secure LLMs (Track 1B) Submission Guide
 
 Participants must submit a **compressed Docker container in the tar.gz format** via the [challenge platform](https://gcss.aisingapore.org/). This repository serves as a step-by-step guide to help participants create a valid submission for Track 1B of the Challenge.
 
