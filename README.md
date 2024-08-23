@@ -178,48 +178,30 @@ As such, your solution must have all necessary modules, model weights, and other
 **_Non-compliance will result in your Docker container facing issues/error when in operation._**
 
 ## Example: Usage of sample submission
-### Pre-condition: Create the isolated Docker network & run the VLLM FastAPI Server
-Before trying out the [sample submission](#example-usage-of-sample-submission) or [creating your own submission](#example-creating-your-own-submission), you will need to:
-
-1. Create a local Docker network to simulate the environment setup for the execution of solutions. Run the following command to create your own isolated Docker network. If it is already created, as indicated by the output of `docker network ls`, you can skip this step.
-```
-ISOLATED_DOCKER_NETWORK_NAME=exec_env_jail_network
-ISOLATED_DOCKER_NETWORK_DRIVER=bridge
-ISOLATED_DOCKER_NETWORK_INTERNAL=true
-ISOLATED_DOCKER_NETWORK_SUBNET=172.50.0.0/16
-
-docker network create \
-    --driver "$ISOLATED_DOCKER_NETWORK_DRIVER" \
-    $( [ "$ISOLATED_DOCKER_NETWORK_INTERNAL" = "true" ] && echo "--internal" ) \
-    --subnet "$ISOLATED_DOCKER_NETWORK_SUBNET" \
-    "$ISOLATED_DOCKER_NETWORK_NAME"
-```
-2. Run a simple VLLM Server for your [sample submission](#example-usage-of-sample-submission) to interact with.
-```
-ISOLATED_DOCKER_NETWORK_NAME=exec_env_jail_network
-GCSS_SERVER=vllm_server 
-DOCKER_IMAGE_FOR_VLLM=backend_server:latest 
-docker run --name "$GCSS_SERVER" \
-	--rm \
-	--cpus 4 \
-	--memory 16g \
-	--runtime=nvidia \
-	--network "$ISOLATED_DOCKER_NETWORK_NAME" \
-	--ip=172.50.0.2 \
-	--expose 8000 \
-	--gpus "device=0" \
-	-e NVIDIA_VISIBLE_DEVICES=0 \
-	-e CUDA_VISIBLE_DEVICES=0
-	-v models:/app/models \
-	-v logs:/app/logs \
-	"$DOCKER_IMAGE_FOR_VLLM" \
-	uvicorn app:app --host 172.50.0.2 --port 8000
-```
 
 ### Clone this repository and navigate to it
 
 ```
 git clone https://github.com/AISG-Technology-Team/GCSS-Track-1B-Submission-Guide
+```
+### Pre-condition: Download the VLLM model files, create the isolated Docker network & run the VLLM FastAPI Server
+Before trying out the [sample submission](#example-usage-of-sample-submission) or [creating your own submission](#example-creating-your-own-submission), you will need to:
+
+1. Download the necessary model files into the `sample_vllm` directory. Look into the following script `hf_download.py`
+
+```
+cd sample_vllm
+python3 -m venv .venv
+.venv/bin/activate
+
+pip install huggingface-hub
+python3 hf_download.py
+```
+2. Create a local Docker network to simulate the environment setup for the execution of solutions and run a simple VLLM Server for your [sample submission](#example-usage-of-sample-submission) to interact with.
+
+```
+cd sample_vllm
+./run.sh
 ```
 
 ### Change into the sample submission (`sample_submission`) directory
@@ -245,38 +227,14 @@ Please ensure you are in the parent directory of `sample_submission` before exec
 Alter the options for `--cpus`, `--gpus`, `--memory` to suit the system you are using to test.
 
 ```
-ISOLATED_DOCKER_NETWORK_NAME=exec_env_jail_network
-DOCKER_IMAGE_FOR_SAMPLE_SUBMISSION=sample_container
-GCSS_SERVER=vllm_server
-
-cat sample_io/test_stdin/stdin.json | \
-docker run --init \
-        --rm \
-        --attach "stdin" \
-        --attach "stdout" \
-        --attach "stderr" \
-        --cpus 4 \
-        --gpus "device=1" \
-        -e GCSS_SERVER="$GCSS_SERVER" \
-        -e NVIDIA_VISIBLE_DEVICES=1 \
-        -e CUDA_VISIBLE_DEVICES=1 \
-        --memory 16g \
-        --memory-swap 0 \
-        --ulimit nproc=2056 \
-        --ulimit nofile=2056 \
-        --network "$ISOLATED_DOCKER_NETWORK_NAME" \
-        --read-only \
-        --mount type=tmpfs,destination=/tmp,tmpfs-size=5368709120,tmpfs-mode=1777 \
-        --interactive \
-        "$DOCKER_IMAGE_FOR_SUBMISSION" \
- 1>sample_io/test_output/stdout.json \
- 2>sample_io/test_output/stderr.log
+cd sample_submission
+./run.sh
 ```
 
 _Please note that the above `docker run` command would be equivalent to running the following command locally:_
 
 ```
-cat sample_io/test_stdin/stdin.json | \
+cat sample_io/test_stdin/stdin_local.json | \
     python3 sample_submission/main.py \
         1>sample_io/test_output/stdout.json \
         2>sample_io/test_output/stderr.log

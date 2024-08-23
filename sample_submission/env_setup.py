@@ -1,5 +1,7 @@
 import os
 
 # Environment Variables
-GCSS_SERVER = os.getenv("GCSS_SERVER", "localhost")
-URL = f"http://{GCSS_SERVER}:8000"
+GCSS_SERVER_CONTAINER_NAME = os.getenv(
+    "GCSS_SERVER_CONTAINER_NAME", "vllm_server"
+)
+GCSS_SERVER = f"http://{GCSS_SERVER_CONTAINER_NAME}"

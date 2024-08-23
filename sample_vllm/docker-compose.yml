@@ -4,7 +4,7 @@ version: '3.9'
 #------------
 services:
   vllm_backend:
-    container_name: ${GCSS_SERVER}
+    container_name: ${GCSS_SERVER_CONTAINER_NAME}
     image: ${DOCKER_IMAGE_FOR_VLLM}
     restart: always
     build:
@@ -13,33 +13,32 @@ services:
     init: true
     runtime: nvidia
     expose:
-      # this is exposes to other services and not to host machine (either/or ports)
-      - "8000"
+      # this exposes to other services and not to host machine (either/or ports)
+      - "80"
     # ports:
     #   # this publishing the ports to the localhost (which is if internal network, not necessary)
-    #   - "8000:8000"
+    #   - "80:80"
     environment:
+      - TEST_RUN=true
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
       - NVIDIA_VISIBLE_DEVICES=all
-      - TEST_RUN=true
       - ATTACK_PROMPT_MAX_TOKEN_LENGTH=256
-      - VLLM_RESPONSE_MAX_TOKEN_LENGTH=256
+      - VLLM_RESPONSE_MAX_TOKEN_LENGTH=512
       - MODEL_FILES_LOCATION=./models
 
     # app's command need to set the host to the assigned IP address of the container
-    command: uvicorn app:app --host 172.50.0.3 --port 8000
+    command: uvicorn app:app --host 0.0.0.0 --port 80
     volumes:
       - ${PWD}/models:/app/models
       - ${PWD}/logs:/app/logs
     networks:
-      backend_network:
-        ipv4_address: "172.50.0.3"
+      - exec_env_jail_network
 
 networks:
-  backend_network:
+  exec_env_jail_network:
     name: ${ISOLATED_DOCKER_NETWORK_NAME}
-    driver: bridge
-    internal: true 
+    driver: ${ISOLATED_DOCKER_NETWORK_DRIVER}
+    internal: ${ISOLATED_DOCKER_NETWORK_INTERNAL}
     ipam:
       config:
-        - subnet: 172.50.0.0/16
+        - subnet: ${ISOLATED_DOCKER_NETWORK_SUBNET}

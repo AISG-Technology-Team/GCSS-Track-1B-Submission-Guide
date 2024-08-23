@@ -12,7 +12,7 @@ RUN mkdir -p /app
 # Given that the docker-compose "context" is .
 COPY . /app
 
-EXPOSE 8000
+EXPOSE 80
 
 # Add venv/bin/activate to PATH to ensure /opt/venv is used within a RUN/CMD/ENTRYPOINT
 # command. This also ensures any sub-process launched via main python script is
